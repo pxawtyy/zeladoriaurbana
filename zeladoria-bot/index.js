@@ -67,16 +67,27 @@ async function connectToWhatsApp() {
 
 app.post('/send-message', async (req, res) => {
     const { numero, mensagem } = req.body;
-    if (!numero || !mensagem) return res.status(400).json({ erro: 'Faltam dados.' });
+
+    if (!numero || !mensagem) {
+        return res.status(400).json({ erro: 'Número e mensagem são obrigatórios.' });
+    }
 
     try {
-        const numeroFormatado = `${numero}@s.whatsapp.net`;
+        let numeroLimpo = String(numero).replace(/\D/g, '');
+
+        if (!numeroLimpo.startsWith('55')) {
+            numeroLimpo = `55${numeroLimpo}`;
+        }
+
+        const numeroFormatado = `${numeroLimpo}@s.whatsapp.net`;
+        
         await sock.sendMessage(numeroFormatado, { text: mensagem });
-        console.log(`[BOT] Notificação enviada para ${numero}`);
+        
+        console.log(`[BOT] Notificação enviada com sucesso para ${numeroFormatado}`);
         return res.status(200).json({ sucesso: true });
     } catch (error) {
         console.error('[BOT] Erro ao enviar mensagem:', error);
-        return res.status(500).json({ erro: 'Falha.' });
+        return res.status(500).json({ erro: 'Falha ao enviar notificação.' });
     }
 });
 
