@@ -15,6 +15,7 @@ type Chamado = {
 export default function AdminPanel() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchChamados = async () => {
@@ -25,7 +26,7 @@ export default function AdminPanel() {
           setChamados(data);
         }
       } catch (error) {
-        console.error("Erro ao buscar chamados:", error);
+        console.error("Erro ao procurar chamados:", error);
       } finally {
         setIsLoading(false);
       }
@@ -34,8 +35,32 @@ export default function AdminPanel() {
     fetchChamados();
   }, []);
 
+  const atualizarStatus = async (protocolo: number, novoStatus: string) => {
+    setIsUpdating(protocolo);
+    try {
+      const res = await fetch(`http://localhost:5142/api/chamados/${protocolo}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: novoStatus })
+      });
+
+      if (res.ok) {
+        setChamados((prev) => 
+          prev.map((c) => c.protocolo === protocolo ? { ...c, status: novoStatus } : c)
+        );
+      } else {
+        alert("Ocorreu um erro ao atualizar o status na base de dados.");
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Erro de ligação com a API.");
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
   const formatarData = (dataIso: string) => {
-    return new Date(dataIso).toLocaleDateString("pt-BR", {
+    return new Date(dataIso).toLocaleDateString("pt-PT", {
       day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
@@ -51,7 +76,6 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-      {/* Header */}
       <header className="bg-[#004383] text-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -74,8 +98,8 @@ export default function AdminPanel() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Ocorrências Registradas</h1>
-            <p className="text-sm text-slate-500 mt-1">Gerencie os chamados abertos pelos cidadãos.</p>
+            <h1 className="text-2xl font-bold text-slate-900">Ocorrências Registadas</h1>
+            <p className="text-sm text-slate-500 mt-1">Gira os chamados abertos pelos cidadãos.</p>
           </div>
           <button onClick={() => window.location.reload()} className="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +109,6 @@ export default function AdminPanel() {
           </button>
         </div>
 
-        {/* Tabela de Dados */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -103,13 +126,13 @@ export default function AdminPanel() {
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-slate-500">
-                      Carregando chamados...
+                      A carregar chamados...
                     </td>
                   </tr>
                 ) : chamados.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-slate-500">
-                      Nenhum chamado registrado ainda.
+                      Nenhum chamado registado ainda.
                     </td>
                   </tr>
                 ) : (
@@ -132,9 +155,16 @@ export default function AdminPanel() {
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                        <button className="text-[#004383] hover:text-[#003B73] font-medium text-sm underline underline-offset-2">
-                          Gerenciar
-                        </button>
+                        <select
+                          value={chamado.status}
+                          onChange={(e) => atualizarStatus(chamado.protocolo, e.target.value)}
+                          disabled={isUpdating === chamado.protocolo}
+                          className="bg-white border border-slate-300 text-slate-700 text-xs rounded-lg focus:ring-[#004383] focus:border-[#004383] block w-full p-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                          <option value="Aberto">Aberto</option>
+                          <option value="Em andamento">Em andamento</option>
+                          <option value="Resolvido">Resolvido</option>
+                        </select>
                       </td>
                     </tr>
                   ))
