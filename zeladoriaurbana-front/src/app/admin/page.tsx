@@ -98,7 +98,7 @@ export default function AdminPanel() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Ocorrências Registadas</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Ocorrências Registradas</h1>
             <p className="text-sm text-slate-500 mt-1">Gira os chamados abertos pelos cidadãos.</p>
           </div>
           <button onClick={() => window.location.reload()} className="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function AdminPanel() {
                 ) : chamados.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-slate-500">
-                      Nenhum chamado registado ainda.
+                      Nenhum chamado registrado ainda.
                     </td>
                   </tr>
                 ) : (
