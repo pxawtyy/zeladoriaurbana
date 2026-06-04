@@ -50,11 +50,27 @@ export default function Chatbot() {
         setIsTyping(false);
       } 
       else if (step === 1) {
-        setFormData((prev) => ({ ...prev, telefone: userText }));
-        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Perfeito. Por fim, descreva detalhadamente o problema que você encontrou na via (ex: buraco, poste apagado, lixo)." }]);
+        let numeroLimpo = userText.replace(/\D/g, '');
+        
+        if (numeroLimpo.length < 10 || numeroLimpo.length > 11) {
+          setMessages((prev) => [...prev, { 
+            id: Date.now(), 
+            role: "bot", 
+            text: "Hmm, esse número parece inválido. Por favor, digite apenas números com o DDD (ex: 11988887777)." 
+          }]);
+          setIsTyping(false);
+          return;
+        }
+
+        if (!numeroLimpo.startsWith('55')) {
+          numeroLimpo = `55${numeroLimpo}`;
+        }
+
+        setFormData((prev) => ({ ...prev, telefone: numeroLimpo }));
+        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Perfeito! Por fim, descreva detalhadamente o problema que você encontrou na via (ex: buraco, poste apagado, lixo)." }]);
         setStep(2);
         setIsTyping(false);
-      } 
+      }
       else if (step === 2) {
         const descricaoFinal = userText;
         setFormData((prev) => ({ ...prev, descricao: descricaoFinal }));
