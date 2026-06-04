@@ -93,7 +93,29 @@ app.MapPut("/api/chamados/{protocolo}/status", async (long protocolo, [FromBody]
     chamado.Status = request.Status;
     await db.SaveChangesAsync();
 
-    Console.WriteLine($"[NOTIFICAÇÃO] Enviando aviso para {chamado.Usuario!.Nome} ({chamado.Usuario.Telefone}): O chamado #{protocolo} agora está '{chamado.Status}'.");
+    string mensagemNotificacao = request.Status switch
+    {
+        "Em andamento" => $"*Zeladoria Urbana*\n\nOlá, {chamado.Usuario!.Nome}! O seu chamado *#{protocolo}* referente a '{chamado.Descricao}' agora está *EM ANDAMENTO* pelas nossas equipes. 🚧",
+        "Resolvido" => $"*Zeladoria Urbana*\n\nOlá, {chamado.Usuario!.Nome}! Excelente notícia: o seu chamado *#{protocolo}* foi marcado como *RESOLVIDO*. Agradecemos por ajudar a melhorar nossa cidade! ✅",
+        _ => $"*Zeladoria Urbana*\n\nOlá, {chamado.Usuario!.Nome}. O status do seu chamado *#{protocolo}* foi atualizado para: {request.Status}."
+    };
+
+    try
+    {
+        using var httpClient = new HttpClient();
+        var payload = new
+        {
+            numero = chamado.Usuario.Telefone,
+            mensagem = mensagemNotificacao
+        };
+
+        await httpClient.PostAsJsonAsync("http://localhost:3001/send-message", payload);
+        Console.WriteLine($"[C#] Requisição de envio disparada para o bot Node.js com sucesso (Protocolo #{protocolo}).");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[C#] Erro ao comunicar com o bot Node.js: {ex.Message}");
+    }
 
     return Results.Ok(new { 
         mensagem = "Status atualizado com sucesso!", 
