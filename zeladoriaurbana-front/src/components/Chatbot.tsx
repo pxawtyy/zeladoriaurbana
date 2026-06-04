@@ -11,7 +11,6 @@ type Message = {
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({ nome: "", telefone: "", descricao: "" });
   const [isTyping, setIsTyping] = useState(false);
@@ -45,7 +44,13 @@ export default function Chatbot() {
     setTimeout(async () => {
       if (step === 0) {
         setFormData((prev) => ({ ...prev, nome: userText }));
-        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: `Prazer, ${userText}! Agora, digite o seu telefone (com DDD).` }]);
+        setMessages((prev) => [...prev,
+        {
+          id: Date.now(),
+          role: "bot",
+          text: `Prazer, ${userText}! Agora, digite o seu telemóvel (com DDD).`
+        }
+        ]);
         setStep(1);
         setIsTyping(false);
       } 
@@ -53,13 +58,15 @@ export default function Chatbot() {
         let numeroLimpo = userText.replace(/\D/g, '');
         
         if (numeroLimpo.length < 10 || numeroLimpo.length > 11) {
-          setMessages((prev) => [...prev, { 
-            id: Date.now(), 
-            role: "bot", 
-            text: "Hmm, esse número parece inválido. Por favor, digite apenas números com o DDD (ex: 11988887777)." 
-          }]);
+          setMessages((prev) => [...prev,
+            {
+              id: Date.now(),
+              role: "bot",
+              text: "Hmm, esse número parece inválido. Por favor, digite apenas números com o DDD (ex: 11988887777)." 
+            }
+          ]);
           setIsTyping(false);
-          return;
+          return; 
         }
 
         if (!numeroLimpo.startsWith('55')) {
@@ -67,16 +74,34 @@ export default function Chatbot() {
         }
 
         setFormData((prev) => ({ ...prev, telefone: numeroLimpo }));
-        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Perfeito! Por fim, descreva detalhadamente o problema que você encontrou na via (ex: buraco, poste apagado, lixo)." }]);
+        setMessages((prev) => [...prev, {
+          id: Date.now(),
+          role: "bot",
+          text: "Perfeito! Agora, descreva detalhadamente o problema que encontrou na via (ex: buraco, poste apagado, lixo)."
+        }]);
         setStep(2);
         setIsTyping(false);
-      }
+      } 
       else if (step === 2) {
-        const descricaoFinal = userText;
-        setFormData((prev) => ({ ...prev, descricao: descricaoFinal }));
-        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Gerando o seu protocolo, um momento..." }]);
+        setFormData((prev) => ({ ...prev, descricao: userText }));
+        setMessages((prev) => [...prev, {
+          id: Date.now(),
+          role: "bot",
+          text: "Deseja enviar uma foto do problema? Cole o link (URL) da imagem aqui, ou digite 'pular' para enviar sem foto."
+        }]);
         setStep(3);
+        setIsTyping(false);
+      }
+      else if (step === 3) {
+        const pular = userText.toLowerCase().trim() === 'pular';
+        const imagemUrlFinal = pular ? null : userText;
 
+        setMessages((prev) => [...prev, {
+          id: Date.now(),
+          role: "bot",
+          text: "A gerar o seu protocolo, um momento..."
+        }]);
+        setStep(4);
         try {
           const res = await fetch("http://localhost:5142/api/chamados", {
             method: "POST",
@@ -84,7 +109,8 @@ export default function Chatbot() {
             body: JSON.stringify({
               nome: formData.nome,
               telefone: formData.telefone,
-              descricao: descricaoFinal
+              descricao: formData.descricao,
+              imagemUrl: imagemUrlFinal
             })
           });
 
@@ -94,7 +120,7 @@ export default function Chatbot() {
             setMessages((prev) => [...prev, { 
               id: Date.now(), 
               role: "bot", 
-              text: `✅ Chamado registrado com sucesso! Seu número de protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações de status.` 
+              text: `✅ Chamado registrado com sucesso! O seu número de protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações de status.` 
             }]);
           } else {
             throw new Error("Erro na API");
@@ -103,11 +129,11 @@ export default function Chatbot() {
           setMessages((prev) => [...prev, { 
             id: Date.now(), 
             role: "bot", 
-            text: "❌ Ops, ocorreu um erro ao registrar seu chamado. Tente novamente mais tarde." 
+            text: "❌ Ops, ocorreu um erro ao registrar o seu chamado. Tente novamente mais tarde." 
           }]);
         } finally {
           setIsTyping(false);
-          setStep(4);
+          setStep(5);
         }
       }
     }, 800);
@@ -162,13 +188,13 @@ export default function Chatbot() {
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={step === 4 ? "Atendimento encerrado." : "Digite sua mensagem..."} 
-              disabled={isTyping || step === 4}
+              placeholder={step === 5 ? "Atendimento encerrado." : "Digite a sua mensagem..."} 
+              disabled={isTyping || step === 5}
               className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383] disabled:opacity-50"
             />
             <button 
               type="submit"
-              disabled={!inputValue.trim() || isTyping || step === 4}
+              disabled={!inputValue.trim() || isTyping || step === 5}
               className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
