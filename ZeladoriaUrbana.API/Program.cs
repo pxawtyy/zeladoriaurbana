@@ -79,6 +79,28 @@ app.MapGet("/api/chamados", async (ApplicationDbContext db) =>
     return Results.Ok(chamados);
 });
 
+app.MapPut("/api/chamados/{protocolo}/status", async (long protocolo, [FromBody] AtualizarStatusRequest request, ApplicationDbContext db) =>
+{
+    var chamado = await db.Chamados
+        .Include(c => c.Usuario)
+        .FirstOrDefaultAsync(c => c.Protocolo == protocolo);
+
+    if (chamado == null) return Results.NotFound(new { erro = "Chamado não encontrado." });
+
+    var statusPermitidos = new[] { "Aberto", "Em andamento", "Resolvido" };
+    if (!statusPermitidos.Contains(request.Status)) return Results.BadRequest(new { erro = "Status inválido." });
+
+    chamado.Status = request.Status;
+    await db.SaveChangesAsync();
+
+    Console.WriteLine($"[NOTIFICAÇÃO] Enviando aviso para {chamado.Usuario!.Nome} ({chamado.Usuario.Telefone}): O chamado #{protocolo} agora está '{chamado.Status}'.");
+
+    return Results.Ok(new { 
+        mensagem = "Status atualizado com sucesso!", 
+        novoStatus = chamado.Status 
+    });
+});
+
 app.Run();
 
 public class NovoChamadoRequest
@@ -87,4 +109,9 @@ public class NovoChamadoRequest
     public string Telefone { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;
     public string? ImagemUrl { get; set; }
+}
+
+public class AtualizarStatusRequest
+{
+    public string Status { get; set; } = string.Empty;
 }
