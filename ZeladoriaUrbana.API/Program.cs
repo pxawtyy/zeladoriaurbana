@@ -60,6 +60,25 @@ app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoCham
     });
 });
 
+app.MapGet("/api/chamados", async (ApplicationDbContext db) =>
+{
+    var chamados = await db.Chamados
+        .Include(c => c.Usuario)
+        .OrderByDescending(c => c.CriadoEm)
+        .Select(c => new {
+            protocolo = c.Protocolo,
+            nomeCidadao = c.Usuario!.Nome,
+            telefone = c.Usuario.Telefone,
+            descricao = c.Descricao,
+            imagemUrl = c.ImagemUrl,
+            status = c.Status,
+            dataCriacao = c.CriadoEm
+        })
+        .ToListAsync();
+
+    return Results.Ok(chamados);
+});
+
 app.Run();
 
 public class NovoChamadoRequest
