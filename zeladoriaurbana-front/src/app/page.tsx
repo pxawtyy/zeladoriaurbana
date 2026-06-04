@@ -1,3 +1,5 @@
+import Chatbot from "@/components/Chatbot";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
@@ -95,6 +97,7 @@ export default function Home() {
           <p className="opacity-60 text-xs">&copy; {new Date().getFullYear()} Zeladoria Urbana. Todos os direitos reservados.</p>
         </div>
       </footer>
+      <Chatbot />
     </div>
   );
 }
