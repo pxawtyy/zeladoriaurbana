@@ -12,53 +12,96 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState({ nome: "", telefone: "", descricao: "" });
+  const [isTyping, setIsTyping] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: 1, 
       role: "bot", 
-      text: "Olá! Sou o assistente de Zeladoria Urbana. Para registrar seu protocolo, por favor, digite seu nome e telefone." 
+      text: "Olá! Sou o assistente de Zeladoria Urbana. Para começar a registrar seu protocolo, por favor, digite o seu nome completo." 
     }
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    const userMessage: Message = {
-      id: messages.length + 1,
-      role: "user",
-      text: inputValue,
-    };
-    
-    setMessages((prev) => [...prev, userMessage]);
+    const userText = inputValue;
     setInputValue("");
+    
+    setMessages((prev) => [...prev, { id: Date.now(), role: "user", text: userText }]);
+    setIsTyping(true);
 
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: messages.length + 2,
-        role: "bot",
-        text: "Obrigado! Agora, descreva o problema que você encontrou na cidade de forma clara (ex: buraco na rua, poste apagado, lixo acumulado).",
-      };
-      setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
+    setTimeout(async () => {
+      if (step === 0) {
+        setFormData((prev) => ({ ...prev, nome: userText }));
+        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: `Prazer, ${userText}! Agora, digite o seu telefone (com DDD).` }]);
+        setStep(1);
+        setIsTyping(false);
+      } 
+      else if (step === 1) {
+        setFormData((prev) => ({ ...prev, telefone: userText }));
+        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Perfeito. Por fim, descreva detalhadamente o problema que você encontrou na via (ex: buraco, poste apagado, lixo)." }]);
+        setStep(2);
+        setIsTyping(false);
+      } 
+      else if (step === 2) {
+        const descricaoFinal = userText;
+        setFormData((prev) => ({ ...prev, descricao: descricaoFinal }));
+        setMessages((prev) => [...prev, { id: Date.now(), role: "bot", text: "Gerando o seu protocolo, um momento..." }]);
+        setStep(3);
+
+        try {
+          const res = await fetch("http://localhost:5142/api/chamados", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nome: formData.nome,
+              telefone: formData.telefone,
+              descricao: descricaoFinal
+            })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            setMessages((prev) => [...prev, { 
+              id: Date.now(), 
+              role: "bot", 
+              text: `✅ Chamado registrado com sucesso! Seu número de protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações de status.` 
+            }]);
+          } else {
+            throw new Error("Erro na API");
+          }
+        } catch (error) {
+          setMessages((prev) => [...prev, { 
+            id: Date.now(), 
+            role: "bot", 
+            text: "❌ Ops, ocorreu um erro ao registrar seu chamado. Tente novamente mais tarde." 
+          }]);
+        } finally {
+          setIsTyping(false);
+          setStep(4);
+        }
+      }
+    }, 800);
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Janela */}
       {isOpen && (
         <div className="mb-4 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 transform origin-bottom-right">
           
-          {/* Header */}
           <div className="bg-[#004383] p-4 text-white flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="relative flex h-3 w-3">
@@ -77,7 +120,6 @@ export default function Chatbot() {
             </button>
           </div>
 
-          {/* Mensagens */}
           <div className="h-96 bg-slate-50 p-4 overflow-y-auto flex flex-col gap-3">
             {messages.map((msg) => (
               <div 
@@ -91,21 +133,26 @@ export default function Chatbot() {
                 {msg.text}
               </div>
             ))}
+            {isTyping && (
+               <div className="bg-white border border-slate-200 text-slate-500 p-3 rounded-2xl rounded-tl-none self-start shadow-sm text-xs flex gap-1">
+                 <span className="animate-bounce">.</span><span className="animate-bounce delay-100">.</span><span className="animate-bounce delay-200">.</span>
+               </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
           <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-slate-200 flex gap-2">
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Digite sua mensagem..." 
-              className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383]"
+              placeholder={step === 4 ? "Atendimento encerrado." : "Digite sua mensagem..."} 
+              disabled={isTyping || step === 4}
+              className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383] disabled:opacity-50"
             />
             <button 
               type="submit"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isTyping || step === 4}
               className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +163,6 @@ export default function Chatbot() {
         </div>
       )}
 
-      {/* Botão Flutuante */}
       {!isOpen && (
         <button 
           onClick={() => setIsOpen(true)}
