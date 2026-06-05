@@ -46,6 +46,7 @@ app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoCham
     {
         UsuarioId = usuario.Id,
         Descricao = request.Descricao,
+        Endereco = request.Endereco,
         ImagemUrl = request.ImagemUrl,
         Status = "Aberto",
         CriadoEm = DateTime.UtcNow
@@ -55,7 +56,7 @@ app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoCham
     await db.SaveChangesAsync();
 
     return Results.Ok(new { 
-        mensagem = "Chamado registado com sucesso!", 
+        mensagem = "Chamado registrado com sucesso!", 
         protocolo = chamado.Protocolo 
     });
 });
@@ -69,6 +70,7 @@ app.MapGet("/api/chamados", async (ApplicationDbContext db) =>
             protocolo = c.Protocolo,
             nomeCidadao = c.Usuario!.Nome,
             telefone = c.Usuario.Telefone,
+            endereco = c.Endereco ?? "Não informado",
             descricao = c.Descricao,
             imagemUrl = c.ImagemUrl,
             status = c.Status,
@@ -129,6 +131,7 @@ public class NovoChamadoRequest
 {
     public string Nome { get; set; } = string.Empty;
     public string Telefone { get; set; } = string.Empty;
+    public string? Endereco { get; set; }
     public string Descricao { get; set; } = string.Empty;
     public string? ImagemUrl { get; set; }
 }

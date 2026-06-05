@@ -15,6 +15,9 @@ public class Chamado
     [Column("usuario_id")]
     public Guid UsuarioId { get; set; }
 
+    [Column("endereco")]
+    public string? Endereco { get; set; }
+
     [Required]
     [Column("descricao")]
     public string Descricao { get; set; } = string.Empty;

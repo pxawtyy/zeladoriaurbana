@@ -12,14 +12,14 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({ nome: "", telefone: "", descricao: "" });
+  const [formData, setFormData] = useState({ nome: "", telefone: "", endereco: "", descricao: "" });
   const [isTyping, setIsTyping] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: 1, 
       role: "bot", 
-      text: "Olá! Sou o assistente de Zeladoria Urbana. Para começar a registrar seu protocolo, por favor, digite o seu nome completo." 
+      text: "Olá! Sou o assistente de Zeladoria Urbana. Para começar a registrar o seu protocolo, por favor, digite o seu nome completo." 
     }
   ]);
 
@@ -44,13 +44,11 @@ export default function Chatbot() {
     setTimeout(async () => {
       if (step === 0) {
         setFormData((prev) => ({ ...prev, nome: userText }));
-        setMessages((prev) => [...prev,
-        {
+        setMessages((prev) => [...prev, {
           id: Date.now(),
           role: "bot",
-          text: `Prazer, ${userText}! Agora, digite o seu telemóvel (com DDD).`
-        }
-        ]);
+          text: `Prazer, ${userText}! Agora, digite o seu celular (com DDD).`
+        }]);
         setStep(1);
         setIsTyping(false);
       } 
@@ -58,13 +56,11 @@ export default function Chatbot() {
         let numeroLimpo = userText.replace(/\D/g, '');
         
         if (numeroLimpo.length < 10 || numeroLimpo.length > 11) {
-          setMessages((prev) => [...prev,
-            {
-              id: Date.now(),
-              role: "bot",
-              text: "Hmm, esse número parece inválido. Por favor, digite apenas números com o DDD (ex: 11988887777)." 
-            }
-          ]);
+          setMessages((prev) => [...prev, {
+            id: Date.now(),
+            role: "bot",
+            text: "Hmm, esse número parece inválido. Por favor, digite apenas números com o DDD (ex: 11988887777)." 
+          }]);
           setIsTyping(false);
           return; 
         }
@@ -74,34 +70,46 @@ export default function Chatbot() {
         }
 
         setFormData((prev) => ({ ...prev, telefone: numeroLimpo }));
+        
         setMessages((prev) => [...prev, {
           id: Date.now(),
           role: "bot",
-          text: "Perfeito! Agora, descreva detalhadamente o problema que encontrou na via (ex: buraco, poste apagado, lixo)."
+          text: "Ótimo! Qual é o endereço completo ou ponto de referência do problema? (Se não souber, digite 'Não sei')."
         }]);
         setStep(2);
         setIsTyping(false);
       } 
       else if (step === 2) {
+        setFormData((prev) => ({ ...prev, endereco: userText }));
+        setMessages((prev) => [...prev, {
+          id: Date.now(),
+          role: "bot",
+          text: "Entendido. Descreva detalhadamente o problema que encontrou na via (ex: buraco, poste apagado, lixo)."
+        }]);
+        setStep(3);
+        setIsTyping(false);
+      }
+      else if (step === 3) {
         setFormData((prev) => ({ ...prev, descricao: userText }));
         setMessages((prev) => [...prev, {
           id: Date.now(),
           role: "bot",
           text: "Deseja enviar uma foto do problema? Cole o link (URL) da imagem aqui, ou digite 'pular' para enviar sem foto."
         }]);
-        setStep(3);
+        setStep(4);
         setIsTyping(false);
       }
-      else if (step === 3) {
+      else if (step === 4) {
         const pular = userText.toLowerCase().trim() === 'pular';
         const imagemUrlFinal = pular ? null : userText;
 
         setMessages((prev) => [...prev, {
           id: Date.now(),
           role: "bot",
-          text: "A gerar o seu protocolo, um momento..."
+          text: "Gerando o seu protocolo, um momento..."
         }]);
-        setStep(4);
+        setStep(5);
+        
         try {
           const res = await fetch("http://localhost:5142/api/chamados", {
             method: "POST",
@@ -109,6 +117,7 @@ export default function Chatbot() {
             body: JSON.stringify({
               nome: formData.nome,
               telefone: formData.telefone,
+              endereco: formData.endereco,
               descricao: formData.descricao,
               imagemUrl: imagemUrlFinal
             })
@@ -120,7 +129,7 @@ export default function Chatbot() {
             setMessages((prev) => [...prev, { 
               id: Date.now(), 
               role: "bot", 
-              text: `✅ Chamado registrado com sucesso! O seu número de protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações de status.` 
+              text: `✅ Chamado registrado com sucesso! Seu protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações.` 
             }]);
           } else {
             throw new Error("Erro na API");
@@ -133,7 +142,7 @@ export default function Chatbot() {
           }]);
         } finally {
           setIsTyping(false);
-          setStep(5);
+          setStep(6);
         }
       }
     }, 800);
@@ -188,13 +197,13 @@ export default function Chatbot() {
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={step === 5 ? "Atendimento encerrado." : "Digite a sua mensagem..."} 
-              disabled={isTyping || step === 5}
+              placeholder={step === 6 ? "Atendimento encerrado." : "Digite a sua mensagem..."} 
+              disabled={isTyping || step === 6}
               className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383] disabled:opacity-50"
             />
             <button 
               type="submit"
-              disabled={!inputValue.trim() || isTyping || step === 5}
+              disabled={!inputValue.trim() || isTyping || step === 6}
               className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
