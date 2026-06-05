@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 type Message = {
   id: number;
@@ -11,9 +12,12 @@ type Message = {
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({ nome: "", telefone: "", endereco: "", descricao: "" });
   const [isTyping, setIsTyping] = useState(false);
+  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     { 
@@ -94,58 +98,94 @@ export default function Chatbot() {
         setMessages((prev) => [...prev, {
           id: Date.now(),
           role: "bot",
-          text: "Deseja enviar uma foto do problema? Cole o link (URL) da imagem aqui, ou digite 'pular' para enviar sem foto."
+          text: "Para finalizar, envie uma foto do problema anexando o arquivo abaixo, ou clique em 'Pular' se não tiver foto."
         }]);
         setStep(4);
         setIsTyping(false);
       }
-      else if (step === 4) {
-        const pular = userText.toLowerCase().trim() === 'pular';
-        const imagemUrlFinal = pular ? null : userText;
-
-        setMessages((prev) => [...prev, {
-          id: Date.now(),
-          role: "bot",
-          text: "Gerando o seu protocolo, um momento..."
-        }]);
-        setStep(5);
-        
-        try {
-          const res = await fetch("http://localhost:5142/api/chamados", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nome: formData.nome,
-              telefone: formData.telefone,
-              endereco: formData.endereco,
-              descricao: formData.descricao,
-              imagemUrl: imagemUrlFinal
-            })
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            setMessages((prev) => [...prev, { 
-              id: Date.now(), 
-              role: "bot", 
-              text: `✅ Chamado registrado com sucesso! Seu protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações.` 
-            }]);
-          } else {
-            throw new Error("Erro na API");
-          }
-        } catch (error) {
-          setMessages((prev) => [...prev, { 
-            id: Date.now(), 
-            role: "bot", 
-            text: "❌ Ops, ocorreu um erro ao registrar o seu chamado. Tente novamente mais tarde." 
-          }]);
-        } finally {
-          setIsTyping(false);
-          setStep(6);
-        }
-      }
     }, 800);
+  };
+
+  const handleFileUpload = async (file: File | null) => {
+    setIsTyping(true);
+    setStep(5);
+
+    if (file) {
+      setMessages((prev) => [...prev, {
+        id: Date.now(),
+        role: "user",
+        text: "📷 Arquivo de imagem enviado."
+      }]);
+    } else {
+      setMessages((prev) => [...prev, {
+        id: Date.now(),
+        role: "user",
+        text: "Pular imagem."
+      }]);
+    }
+
+    setMessages((prev) => [...prev, {
+      id: Date.now(),
+      role: "bot",
+      text: "Gerando o seu protocolo, um momento..."
+    }]);
+
+    try {
+      let imagemUrlFinal = null;
+
+      // Upload pro Supabase
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('ocorrencias')
+          .upload(fileName, file);
+
+        if (uploadError) throw new Error("Erro ao fazer upload da imagem");
+
+        const { data: publicUrlData } = supabase.storage
+          .from('ocorrencias')
+          .getPublicUrl(fileName);
+
+        imagemUrlFinal = publicUrlData.publicUrl;
+      }
+
+      const res = await fetch("http://localhost:5142/api/chamados", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: formData.nome,
+          telefone: formData.telefone,
+          endereco: formData.endereco,
+          descricao: formData.descricao,
+          imagemUrl: imagemUrlFinal
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessages((prev) => [...prev, { 
+          id: Date.now(), 
+          role: "bot", 
+          text: `✅ Chamado registrado com sucesso! Seu protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações.` 
+        }]);
+      } else {
+        throw new Error("Erro na API");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [...prev, { 
+        id: Date.now(), 
+        role: "bot", 
+        text: "❌ Ops, ocorreu um erro ao registrar o seu chamado. Tente novamente mais tarde." 
+      }]);
+    } finally {
+      setIsTyping(false);
+      setStep(6);
+      setSelectedFile(null);
+    }
   };
 
   return (
@@ -192,32 +232,60 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-slate-200 flex gap-2">
-            <input 
-              type="text" 
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={step === 6 ? "Atendimento encerrado." : "Digite a sua mensagem..."} 
-              disabled={isTyping || step === 6}
-              className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383] disabled:opacity-50"
-            />
-            <button 
-              type="submit"
-              disabled={!inputValue.trim() || isTyping || step === 6}
-              className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </form>
+          <div className="p-3 bg-white border-t border-slate-200 flex gap-2 items-center">
+            {step === 4 ? (
+              <div className="flex gap-2 items-center w-full animate-in fade-in zoom-in duration-300">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#004383] hover:file:bg-blue-100 cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleFileUpload(null)}
+                  disabled={isTyping}
+                  className="text-xs font-medium text-slate-500 hover:text-slate-800 transition px-2 cursor-pointer disabled:opacity-50"
+                >
+                  Pular
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleFileUpload(selectedFile)}
+                  disabled={!selectedFile || isTyping}
+                  className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center shrink-0 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage} className="flex gap-2 w-full">
+                <input 
+                  type="text" 
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={step === 6 ? "Atendimento encerrado." : "Digite a sua mensagem..."} 
+                  disabled={isTyping || step === 6}
+                  className="flex-grow bg-slate-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004383] disabled:opacity-50"
+                />
+                <button 
+                  type="submit"
+                  disabled={!inputValue.trim() || isTyping || step === 6}
+                  className="bg-[#004383] hover:bg-[#003B73] disabled:bg-slate-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition flex items-center justify-center cursor-pointer shrink-0"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                </button>
+              </form>
+            )}
+          </div>
+
         </div>
       )}
 
       {!isOpen && (
         <button 
           onClick={() => setIsOpen(true)}
-          className="bg-[#004383] hover:bg-[#003B73] text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 flex items-center justify-center border-2 border-black"
+          className="bg-[#004383] hover:bg-[#003B73] text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 flex items-center justify-center border-2 border-black cursor-pointer"
         >
           <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />

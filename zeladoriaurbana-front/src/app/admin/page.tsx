@@ -25,6 +25,7 @@ export default function AdminPanel() {
   const [isUpdating, setIsUpdating] = useState<number | null>(null);
   
   const [chamadoSelecionado, setChamadoSelecionado] = useState<Chamado | null>(null);
+  const [imagemExpandida, setImagemExpandida] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -357,7 +358,8 @@ export default function AdminPanel() {
                     <img 
                       src={chamadoSelecionado.imagemUrl} 
                       alt="Anexo do cidadão" 
-                      className="max-w-full max-h-[300px] object-contain transition duration-300 group-hover:scale-105"
+                      onClick={() => setImagemExpandida(chamadoSelecionado.imagemUrl)}
+                      className="max-w-full max-h-[300px] object-contain transition duration-300 group-hover:scale-105 cursor-pointer"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                         (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
@@ -375,6 +377,42 @@ export default function AdminPanel() {
 
             </div>
           </div>
+        </div>
+      )}
+      {imagemExpandida && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
+          style={{ animation: 'modalFadeIn 0.4s ease-out forwards' }}
+          onClick={() => setImagemExpandida(null)}
+        >
+          <style>{`
+            @keyframes modalFadeIn {
+              from { opacity: 0; backdrop-filter: blur(0px); }
+              to { opacity: 1; backdrop-filter: blur(12px); }
+            }
+            @keyframes imageZoom {
+              from { opacity: 0; transform: scale(0.85); }
+              to { opacity: 1; transform: scale(1); }
+            }
+          `}</style>
+          
+          <button 
+            onClick={() => setImagemExpandida(null)}
+            className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black p-3 rounded-full transition-all z-10 hover:scale-110"
+            style={{ animation: 'modalFadeIn 0.6s ease-out forwards' }}
+            title="Fechar imagem"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={imagemExpandida} 
+            alt="Anexo em tela cheia" 
+            className="max-w-full max-h-[90vh] object-contain cursor-default rounded-lg shadow-2xl"
+            style={{ animation: 'imageZoom 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+            onClick={(e) => e.stopPropagation()} 
+          />
         </div>
       )}
     </div>
