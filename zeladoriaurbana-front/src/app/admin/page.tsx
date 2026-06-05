@@ -216,7 +216,27 @@ export default function AdminPanel() {
               </thead>
               <tbody key={`${currentPage}-${itemsPerPage}`} className="divide-y divide-slate-100 text-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-slate-500">Carregando chamados...</td></tr>
+                  [...Array(5)].map((_, index) => (
+                    <tr key={`skeleton-${index}`} className="animate-pulse border-b border-slate-100">
+                      <td className="p-4">
+                        <div className="h-5 bg-slate-200 rounded-md w-16"></div>
+                      </td>
+                      <td className="p-4 flex flex-col gap-2">
+                        <div className="h-5 bg-slate-200 rounded-md w-32"></div>
+                        <div className="h-3 bg-slate-100 rounded-md w-24"></div>
+                      </td>
+                      <td className="p-4">
+                        <div className="h-5 bg-slate-200 rounded-md w-48"></div>
+                      </td>
+                      <td className="p-4">
+                        <div className="h-7 bg-slate-200 rounded-full w-24"></div>
+                      </td>
+                      <td className="p-4 flex items-center justify-center gap-2">
+                        <div className="h-9 bg-slate-200 rounded-lg w-28"></div>
+                        <div className="h-9 w-9 bg-slate-200 rounded-lg"></div>
+                      </td>
+                    </tr>
+                  ))
                 ) : chamadosVisiveis.length === 0 ? (
                   <tr><td colSpan={5} className="p-8 text-center text-slate-500">Nenhum chamado registrado.</td></tr>
                 ) : (
