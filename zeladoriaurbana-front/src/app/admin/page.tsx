@@ -13,6 +13,7 @@ type Chamado = {
   imagemUrl: string | null;
   status: string;
   dataCriacao: string;
+  historicoChat: string | null;
 };
 
 export default function AdminPanel() {
@@ -295,7 +296,7 @@ export default function AdminPanel() {
 
       {chamadoSelecionado && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-200">
             
             <div className="sticky top-0 bg-white border-b border-slate-100 p-6 flex justify-between items-start z-10">
               <div>
@@ -328,13 +329,13 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cidadão</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Cidadão</h4>
                   <p className="text-sm text-slate-800 font-medium">{chamadoSelecionado.nomeCidadao}</p>
                   <p className="text-sm text-slate-500">{chamadoSelecionado.telefone}</p>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Localização</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Localização</h4>
                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col items-start gap-3">
                     <p className="text-sm text-slate-800 leading-relaxed">
                       {chamadoSelecionado.endereco}
@@ -360,15 +361,49 @@ export default function AdminPanel() {
                 </div>
                 
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Descrição Completa</h4>
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Descrição Completa</h4>
                   <p className="text-sm text-slate-800 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 whitespace-pre-wrap">
                     {chamadoSelecionado.descricao}
                   </p>
                 </div>
               </div>
 
+              {chamadoSelecionado.historicoChat && (
+                <div className="mt-2">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Histórico de Interação</h4>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 h-64 overflow-y-auto flex flex-col gap-2 shadow-inner">
+                    {JSON.parse(chamadoSelecionado.historicoChat).map((msg: any) => (
+                      <div 
+                        key={msg.id} 
+                        className={`p-2.5 rounded-xl text-[13px] max-w-[90%] ${
+                          msg.role === "bot" 
+                            ? "bg-white border border-slate-200 text-slate-600 rounded-tl-none self-start" 
+                            : "bg-slate-200 text-slate-800 rounded-tr-none self-end"
+                        }`}
+                      >
+                        {msg.text.includes("📷 Imagem enviada:") ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-slate-700">📷 Imagem enviada</span>
+                            <a 
+                              href={msg.text.split("📷 Imagem enviada: ")[1]} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[#004383] underline hover:text-blue-500 truncate inline-block max-w-full"
+                            >
+                              Ver anexo original
+                            </a>
+                          </div>
+                        ) : (
+                          msg.text
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Evidência Fotográfica</h4>
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Evidência Fotográfica</h4>
                 {chamadoSelecionado.imagemUrl ? (
                   <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 h-full min-h-[250px] flex items-center justify-center relative group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

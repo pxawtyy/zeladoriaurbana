@@ -33,4 +33,7 @@ public class Chamado
     public DateTime CriadoEm { get; set; }
 
     public Usuario? Usuario { get; set; }
+
+    [Column("historico_chat")]
+    public string? HistoricoChat { get; set; }
 }

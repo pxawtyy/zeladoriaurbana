@@ -157,6 +157,12 @@ export default function Chatbot() {
         imagemUrlFinal = publicUrlData.publicUrl;
       }
 
+      const mensagemAnexo = file 
+        ? { id: Date.now(), role: "user", text: `📷 Imagem enviada: ${imagemUrlFinal}` }
+        : { id: Date.now(), role: "user", text: "Nenhuma imagem anexada." };
+        
+      const historicoFinal = [...messages, mensagemAnexo];
+
       const res = await fetch("http://localhost:5142/api/chamados", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,7 +171,8 @@ export default function Chatbot() {
           telefone: formData.telefone,
           endereco: formData.endereco,
           descricao: formData.descricao,
-          imagemUrl: imagemUrlFinal
+          imagemUrl: imagemUrlFinal,
+          historicoChat: JSON.stringify(historicoFinal)
         })
       });
 

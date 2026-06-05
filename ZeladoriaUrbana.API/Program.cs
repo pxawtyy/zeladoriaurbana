@@ -49,7 +49,8 @@ app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoCham
         Endereco = request.Endereco,
         ImagemUrl = request.ImagemUrl,
         Status = "Aberto",
-        CriadoEm = DateTime.UtcNow
+        CriadoEm = DateTime.UtcNow,
+        HistoricoChat = request.HistoricoChat
     };
 
     db.Chamados.Add(chamado);
@@ -74,7 +75,8 @@ app.MapGet("/api/chamados", async (ApplicationDbContext db) =>
             descricao = c.Descricao,
             imagemUrl = c.ImagemUrl,
             status = c.Status,
-            dataCriacao = c.CriadoEm
+            dataCriacao = c.CriadoEm,
+            historicoChat = c.HistoricoChat
         })
         .ToListAsync();
 
@@ -134,6 +136,7 @@ public class NovoChamadoRequest
     public string? Endereco { get; set; }
     public string Descricao { get; set; } = string.Empty;
     public string? ImagemUrl { get; set; }
+    public string? HistoricoChat { get; set; }
 }
 
 public class AtualizarStatusRequest
