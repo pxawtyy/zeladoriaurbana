@@ -289,9 +289,28 @@ export default function AdminPanel() {
 
                 <div>
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Localização</h4>
-                  <p className="text-sm text-slate-800 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    {chamadoSelecionado.endereco}
-                  </p>
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col items-start gap-3">
+                    <p className="text-sm text-slate-800 leading-relaxed">
+                      {chamadoSelecionado.endereco}
+                    </p>
+                    
+                    {chamadoSelecionado.endereco && 
+                     chamadoSelecionado.endereco.toLowerCase() !== "não sei" && 
+                     chamadoSelecionado.endereco.toLowerCase() !== "nao sei" && (
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(chamadoSelecionado.endereco + ", Diadema - SP")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#004383] hover:text-[#003B73] bg-blue-100/50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors border border-blue-200"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Ver no Google Maps
+                      </a>
+                    )}
+                  </div>
                 </div>
                 
                 <div>
