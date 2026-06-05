@@ -1,0 +1,85 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
+export default function LoginAdmin() {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErro("");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: senha,
+    });
+
+    if (error) {
+      setErro("E-mail ou senha incorretos.");
+      setIsLoading(false);
+    } else {
+      router.push("/admin");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+      <div className="bg-white max-w-md w-full rounded-2xl shadow-xl border border-slate-200 p-8">
+        <div className="flex flex-col items-center mb-8">
+          <div className="bg-[#004383] p-3 rounded-full text-white mb-4 shadow-md">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">Acesso Restrito</h1>
+          <p className="text-sm text-slate-500 mt-1">Painel de Gestão da Zeladoria Urbana</p>
+        </div>
+
+        {erro && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 text-center border border-red-100">
+            {erro}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+            <input 
+              type="email" 
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 focus:border-[#004383] focus:ring-2 focus:ring-[#004383]/20 rounded-lg px-4 py-2.5 outline-none transition text-slate-900"
+              placeholder="admin@zeladoria.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+            <input 
+              type="password" 
+              required
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 focus:border-[#004383] focus:ring-2 focus:ring-[#004383]/20 rounded-lg px-4 py-2.5 outline-none transition text-slate-900"
+              placeholder="••••••••"
+            />
+          </div>
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            className="w-full bg-[#004383] hover:bg-[#003B73] text-white font-medium py-2.5 rounded-lg transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center h-[44px]"
+          >
+            {isLoading ? <span className="animate-pulse">Autenticando...</span> : "Entrar no Sistema"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
