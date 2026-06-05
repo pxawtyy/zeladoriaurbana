@@ -31,6 +31,15 @@ export default function LoginAdmin() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+      <a 
+        href="/" 
+        className="absolute top-6 left-6 text-[#004383] hover:text-[#003B73] flex items-center gap-2 font-medium transition-colors"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Voltar ao Início
+      </a>
       <div className="bg-white max-w-md w-full rounded-2xl shadow-xl border border-slate-200 p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-[#004383] p-3 rounded-full text-white mb-4 shadow-md">
