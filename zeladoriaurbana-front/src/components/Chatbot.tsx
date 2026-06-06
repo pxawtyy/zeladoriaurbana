@@ -28,6 +28,7 @@ export default function Chatbot() {
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,6 +41,14 @@ export default function Chatbot() {
     window.addEventListener('openChatbot', handleOpenChatbot);
     return () => window.removeEventListener('openChatbot', handleOpenChatbot);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && !isTyping && step !== 4 && step !== 6) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+    }
+  }, [isTyping, step, isOpen]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,6 +287,7 @@ export default function Chatbot() {
           ) : (
             <form onSubmit={handleSendMessage} className="flex gap-2 w-full">
               <input 
+                ref={inputRef}
                 type="text" 
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
