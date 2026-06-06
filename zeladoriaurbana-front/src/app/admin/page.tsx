@@ -48,6 +48,22 @@ export default function AdminPanel() {
     };
 
     checkUser();
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chamados' },
+        (payload) => {
+          console.log('Mudança em tempo real recebida!', payload);
+          fetchChamados(); 
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [router]);
 
   const fetchChamados = async () => {
