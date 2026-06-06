@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ZeladoriaUrbana.API.Data;
 using ZeladoriaUrbana.API.Models;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,30 @@ app.MapGet("/", () => "API online!");
 
 app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoChamadoRequest request) =>
 {
+    var groqApiKey = builder.Configuration["GroqApiKey"];
+    using var httpClient = new HttpClient();
+    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", groqApiKey);
+
+    var systemPrompt = "Você é um classificador de zeladoria urbana. Analise a descrição e retorne ESTRITAMENTE um objeto JSON válido, sem markdown ou texto extra, com as chaves: 'categoria' (ex: Iluminação, Asfalto, Lixo, Água), 'urgencia' (somente Alta, Media ou Baixa baseada no risco ao cidadão) e 'resumo' (uma frase curta de até 10 palavras resumindo o problema).";
+
+    var groqRequest = new
+    {
+        model = "llama-3.1-8b-instant",
+        messages = new[]
+        {
+            new { role = "system", content = systemPrompt },
+            new { role = "user", content = request.Descricao }
+        },
+        response_format = new { type = "json_object" }
+    };
+
+    var groqResponse = await httpClient.PostAsJsonAsync("https://api.groq.com/openai/v1/chat/completions", groqRequest);
+    var groqData = await groqResponse.Content.ReadFromJsonAsync<GroqResponse>();
+
     var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Telefone == request.Telefone);
+
+    var classificacaoJson = groqData?.Choices.FirstOrDefault()?.Message.Content ?? "{}";
+    var classificacao = JsonSerializer.Deserialize<IaClassificacao>(classificacaoJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
     if (usuario == null)
     {
@@ -50,7 +75,10 @@ app.MapPost("/api/chamados", async (ApplicationDbContext db, [FromBody] NovoCham
         ImagemUrl = request.ImagemUrl,
         Status = "Aberto",
         CriadoEm = DateTime.UtcNow,
-        HistoricoChat = request.HistoricoChat
+        HistoricoChat = request.HistoricoChat,
+        Categoria = classificacao?.Categoria ?? "Não classificado",
+        Urgencia = classificacao?.Urgencia ?? "Media",
+        ResumoIa = classificacao?.Resumo ?? "Resumo indisponível"
     };
 
     db.Chamados.Add(chamado);
@@ -76,7 +104,10 @@ app.MapGet("/api/chamados", async (ApplicationDbContext db) =>
             imagemUrl = c.ImagemUrl,
             status = c.Status,
             dataCriacao = c.CriadoEm,
-            historicoChat = c.HistoricoChat
+            historicoChat = c.HistoricoChat,
+            categoria = c.Categoria,
+            urgencia = c.Urgencia,
+            resumoIa = c.ResumoIa
         })
         .ToListAsync();
 
@@ -142,4 +173,26 @@ public class NovoChamadoRequest
 public class AtualizarStatusRequest
 {
     public string Status { get; set; } = string.Empty;
+}
+
+public class GroqResponse
+{
+    public List<GroqChoice> Choices { get; set; } = new();
+}
+
+public class GroqChoice
+{
+    public GroqMessage Message { get; set; } = new();
+}
+
+public class GroqMessage
+{
+    public string Content { get; set; } = string.Empty;
+}
+
+public class IaClassificacao
+{
+    public string Categoria { get; set; } = string.Empty;
+    public string Urgencia { get; set; } = string.Empty;
+    public string Resumo { get; set; } = string.Empty;
 }

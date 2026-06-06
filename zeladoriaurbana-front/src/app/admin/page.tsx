@@ -14,6 +14,9 @@ type Chamado = {
   status: string;
   dataCriacao: string;
   historicoChat: string | null;
+  categoria?: string;
+  urgencia?: string;
+  resumoIa?: string;
 };
 
 export default function AdminPanel() {
@@ -397,15 +400,34 @@ export default function AdminPanel() {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="flex flex-col gap-5">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                  <div className="text-yellow-600 mt-0.5">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-1 rounded-bl-lg flex items-center gap-1 uppercase tracking-wider">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    Triagem por IA
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-yellow-800 uppercase tracking-wider">Insight da Ocorrência</h4>
-                    <p className="text-sm text-yellow-900 mt-1 font-medium">{calcularTempoAberto(chamadoSelecionado.dataCriacao, chamadoSelecionado.status)}</p>
+                  
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Resumo da Ocorrência</h4>
+                  
+                  <p className="text-slate-800 font-medium text-sm mb-4 leading-relaxed">
+                    {chamadoSelecionado.resumoIa || "Resumo não gerado pelo assistente."}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {chamadoSelecionado.urgencia && (
+                      <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider border ${
+                        chamadoSelecionado.urgencia.toLowerCase() === 'alta' ? 'bg-red-50 text-red-700 border-red-200' :
+                        chamadoSelecionado.urgencia.toLowerCase() === 'media' || chamadoSelecionado.urgencia.toLowerCase() === 'média' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                        'bg-green-50 text-green-700 border-green-200'
+                      }`}>
+                        Urgência: {chamadoSelecionado.urgencia}
+                      </span>
+                    )}
+
+                    {chamadoSelecionado.categoria && (
+                      <span className="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-blue-50 text-[#004383] border border-blue-200">
+                        {chamadoSelecionado.categoria}
+                      </span>
+                    )}
                   </div>
                 </div>
 

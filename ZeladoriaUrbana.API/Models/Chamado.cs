@@ -36,4 +36,13 @@ public class Chamado
 
     [Column("historico_chat")]
     public string? HistoricoChat { get; set; }
+
+    [Column("categoria")]
+    public string? Categoria { get; set; }
+
+    [Column("urgencia")]
+    public string? Urgencia { get; set; }
+
+    [Column("resumo_ia")]
+    public string? ResumoIa { get; set; }
 }
