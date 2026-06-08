@@ -3,21 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-
-type Chamado = {
-  protocolo: number;
-  nomeCidadao: string;
-  telefone: string;
-  endereco: string;
-  descricao: string;
-  imagemUrl: string | null;
-  status: string;
-  dataCriacao: string;
-  historicoChat: string | null;
-  categoria?: string;
-  urgencia?: string;
-  resumoIa?: string;
-};
+import { Chamado } from "@/types";
+import { api } from "@/services/api";
 
 export default function AdminPanel() {
   const router = useRouter();
@@ -68,11 +55,8 @@ export default function AdminPanel() {
 
   const fetchChamados = async () => {
     try {
-      const res = await fetch("http://localhost:5142/api/chamados");
-      if (res.ok) {
-        const data = await res.json();
-        setChamados(data);
-      }
+      const data = await api.listarChamados();
+      setChamados(data);
     } catch (error) {
       console.error("Erro ao procurar chamados:", error);
     } finally {
@@ -90,25 +74,17 @@ export default function AdminPanel() {
   const atualizarStatus = async (protocolo: number, novoStatus: string) => {
     setIsUpdating(protocolo);
     try {
-      const res = await fetch(`http://localhost:5142/api/chamados/${protocolo}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: novoStatus })
-      });
-
-      if (res.ok) {
-        setChamados((prev) => 
-          prev.map((c) => c.protocolo === protocolo ? { ...c, status: novoStatus } : c)
-        );
-        if (chamadoSelecionado?.protocolo === protocolo) {
-          setChamadoSelecionado((prev) => prev ? { ...prev, status: novoStatus } : null);
-        }
-      } else {
-        alert("Ocorreu um erro ao atualizar o status na base de dados.");
+      await api.atualizarStatus(protocolo, novoStatus);
+      
+      setChamados((prev) => 
+        prev.map((c) => c.protocolo === protocolo ? { ...c, status: novoStatus } : c)
+      );
+      if (chamadoSelecionado?.protocolo === protocolo) {
+        setChamadoSelecionado((prev) => prev ? { ...prev, status: novoStatus } : null);
       }
     } catch (error) {
       console.error("Erro:", error);
-      alert("Erro de ligação com a API.");
+      alert("Ocorreu um erro de ligação com a API ao atualizar o status.");
     } finally {
       setIsUpdating(null);
     }

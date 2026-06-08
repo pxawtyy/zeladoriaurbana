@@ -2,12 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-
-type Message = {
-  id: number;
-  role: "bot" | "user";
-  text: string;
-};
+import { api } from "@/services/api";
+import { Message } from "@/types";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -172,30 +168,21 @@ export default function Chatbot() {
         
       const historicoFinal = [...messages, mensagemAnexo];
 
-      const res = await fetch("http://localhost:5142/api/chamados", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: formData.nome,
-          telefone: formData.telefone,
-          endereco: formData.endereco,
-          descricao: formData.descricao,
-          imagemUrl: imagemUrlFinal,
-          historicoChat: JSON.stringify(historicoFinal)
-        })
+      const data = await api.criarChamado({
+        nome: formData.nome,
+        telefone: formData.telefone,
+        endereco: formData.endereco,
+        descricao: formData.descricao,
+        imagemUrl: imagemUrlFinal,
+        historicoChat: JSON.stringify(historicoFinal)
       });
 
-      const data = await res.json();
+      setMessages((prev) => [...prev, { 
+        id: Date.now(), 
+        role: "bot", 
+        text: `✅ Chamado registrado com sucesso! Seu protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações.` 
+      }]);
 
-      if (res.ok) {
-        setMessages((prev) => [...prev, { 
-          id: Date.now(), 
-          role: "bot", 
-          text: `✅ Chamado registrado com sucesso! Seu protocolo é: *${data.protocolo}*. Avisaremos via WhatsApp sobre as atualizações.` 
-        }]);
-      } else {
-        throw new Error("Erro na API");
-      }
     } catch (error) {
       console.error(error);
       setMessages((prev) => [...prev, { 
