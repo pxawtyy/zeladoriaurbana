@@ -1,9 +1,11 @@
 import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } from 'baileys';
 import pino from 'pino';
 
+const logger = pino({ level: 'silent' });
+
 let sock;
 let pairingRequested = false;
-const logger = pino({ level: 'silent' });
+export let isWhatsAppConnected = false;
 
 export const connectToWhatsApp = async () => {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
@@ -44,8 +46,10 @@ export const connectToWhatsApp = async () => {
         if (connection === 'open') {
             console.log('[BOT] ✅ WhatsApp conectado e pronto!');
             pairingRequested = false; 
+            isWhatsAppConnected = true;
         } 
         else if (connection === 'close') {
+            isWhatsAppConnected = false;
             pairingRequested = false; 
             const statusCode = lastDisconnect.error?.output?.statusCode;
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut && statusCode !== 403;

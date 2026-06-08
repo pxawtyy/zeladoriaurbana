@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { sendWhatsAppMessage } from './services/whatsapp.js';
+import { sendWhatsAppMessage, isWhatsAppConnected } from './services/whatsapp.js';
 
 const app = express();
 
@@ -8,6 +8,12 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/send-message', async (req, res) => {
+    if (!isWhatsAppConnected) {
+        return res.status(503).json({ 
+            erro: 'O serviço do WhatsApp ainda está inicializando ou perdeu a conexão. Tente novamente em instantes.' 
+        });
+    }
+    
     const { numero, mensagem } = req.body;
 
     if (!numero || !mensagem) {
