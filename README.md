@@ -48,7 +48,7 @@ docker compose up -d
 ## 2. API Backend (C#)
 
 ```bash
-cd ZeladoriaUrbana.API
+cd zeladoria-api
 
 # Lembre-se de configurar a connection string e a
 # API Key da Groq via User Secrets ou appsettings.json,
@@ -60,7 +60,7 @@ dotnet run
 ## 3. Microsserviço de Mensageria (Bot WhatsApp)
 
 ```bash
-cd zeladoria-bot
+cd zeladoria-whatsapp
 pnpm install
 pnpm start
 ```
@@ -70,7 +70,7 @@ pnpm start
 ## 4. Frontend (Next.js)
 
 ```bash
-cd zeladoriaurbana-front
+cd zeladoria-front
 pnpm install
 
 # Configure as variáveis de ambiente locais
