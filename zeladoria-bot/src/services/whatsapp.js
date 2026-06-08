@@ -5,6 +5,8 @@ const logger = pino({ level: 'silent' });
 
 let sock;
 let pairingRequested = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
 export let isWhatsAppConnected = false;
 
 export const connectToWhatsApp = async () => {
@@ -47,6 +49,7 @@ export const connectToWhatsApp = async () => {
             console.log('[BOT] ✅ WhatsApp conectado e pronto!');
             pairingRequested = false; 
             isWhatsAppConnected = true;
+            reconnectAttempts = 0;
         } 
         else if (connection === 'close') {
             isWhatsAppConnected = false;
@@ -55,7 +58,19 @@ export const connectToWhatsApp = async () => {
             const shouldReconnect = statusCode !== DisconnectReason.loggedOut && statusCode !== 403;
             
             if (shouldReconnect) {
-                setTimeout(connectToWhatsApp, 5000);
+                reconnectAttempts++;
+                
+                if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
+                    const tempoEsperaMs = Math.pow(2, reconnectAttempts - 1) * 5000; 
+                    
+                    console.log(`[BOT] Conexão caiu. Tentando reconectar em ${tempoEsperaMs / 1000}s (Tentativa ${reconnectAttempts} de ${MAX_RECONNECT_ATTEMPTS})...`);
+                    
+                    setTimeout(connectToWhatsApp, tempoEsperaMs);
+                } else {
+                    console.error('[BOT] 🚨 FALHA CRÍTICA: Limite máximo de reconexões atingido.');
+                }
+            } else {
+                console.log('[BOT] Desconectado permanentemente.');
             }
         }
     });
