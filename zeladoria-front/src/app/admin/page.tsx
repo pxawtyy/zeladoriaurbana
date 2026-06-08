@@ -57,6 +57,7 @@ export default function AdminPanel() {
   }, [router]);
 
   const fetchChamados = async () => {
+    setIsLoading(true);
     try {
       const data = await api.listarChamados();
       setChamados(data);
