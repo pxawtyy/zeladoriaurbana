@@ -7,13 +7,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/send-message', async (req, res) => {
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    const secretToken = process.env.API_SECRET_TOKEN;
+
+    if (!authHeader || authHeader !== `Bearer ${secretToken}`) {
+        return res.status(401).json({ erro: 'Acesso não autorizado.' });
+    }
+
+    next();
+};
+
+app.post('/send-message', authMiddleware, async (req, res) => {
     if (!isWhatsAppConnected) {
         return res.status(503).json({ 
             erro: 'O serviço do WhatsApp ainda está inicializando ou perdeu a conexão. Tente novamente em instantes.' 
         });
     }
-    
+
     const { numero, mensagem } = req.body;
 
     if (!numero || !mensagem) {
