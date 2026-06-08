@@ -18,7 +18,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Chamado>()
             .Property(c => c.CriadoEm)
-            .HasDefaultValueSql("NOW()");
+            .HasDefaultValueSql("timezone('utc', now())");
             
         base.OnModelCreating(modelBuilder);
     }
