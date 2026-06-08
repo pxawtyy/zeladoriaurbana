@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useState } from "react";
 import { Chamado } from "@/types";
 
@@ -131,15 +132,13 @@ export default function ChamadoModal({ chamado, onClose }: { chamado: Chamado; o
                 {chamado.imagemUrl ? (
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 h-full min-h-[250px] flex items-center justify-center relative group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
+                    <Image 
                         src={chamado.imagemUrl} 
                         alt="Anexo do cidadão" 
-                        onClick={() => setImagemExpandida(chamado.imagemUrl)}
-                        className="max-w-full max-h-[300px] object-contain transition duration-300 group-hover:scale-105 cursor-pointer"
-                        onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                        }}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-contain transition duration-300 group-hover:scale-105 cursor-pointer"
+                        onClick={() => setImagemExpandida(chamado.imagemUrl!)}
                     />
                     <p className="hidden text-sm text-slate-400 p-4 text-center">Erro ao carregar a imagem da URL fornecida.</p>
                     </div>
@@ -164,10 +163,12 @@ export default function ChamadoModal({ chamado, onClose }: { chamado: Chamado; o
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
+            <Image
                 src={imagemExpandida} 
                 alt="Anexo em tela cheia" 
-                className="max-w-full max-h-[90vh] object-contain cursor-default rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
+                fill 
+                sizes="(max-width: 768px) 90vw, 80vw"
+                className="object-contain cursor-default rounded-lg shadow-2xl animate-in zoom-in-95 duration" 
                 onClick={(e) => e.stopPropagation()} 
             />
             </div>
