@@ -1,6 +1,38 @@
-@ZeladoriaUrbana.API_HostAddress = http://localhost:5142
+### Variáveis
+# @ZeladoriaUrbana.API_HostAddress = http://localhost:5142
+@ZeladoriaUrbana.API_HostAddress = https://zeladoriaurbana-n444.onrender.com
 
-GET {{ZeladoriaUrbana.API_HostAddress}}/weatherforecast/
+### 1. Verificar se a API está online (Health Check)
+GET {{ZeladoriaUrbana.API_HostAddress}}/
 Accept: application/json
 
 ###
+
+### 2. Listar todos os chamados
+GET {{ZeladoriaUrbana.API_HostAddress}}/api/chamados
+Accept: application/json
+
+###
+
+### 3. Criar um novo chamado de teste
+POST {{ZeladoriaUrbana.API_HostAddress}}/api/chamados
+Content-Type: application/json
+Accept: application/json
+
+{
+  "nome": "Avaliador Teste",
+  "telefone": "5511900000000",
+  "endereco": "Fatec Diadema - Av. Luiz Merenda, 443",
+  "descricao": "Teste de criação de chamado diretamente pelo VS Code.",
+  "historicoChat": "[]"
+}
+
+###
+
+### 4. Atualizar o status de um chamado (Troque o '1' pelo protocolo real)
+PUT {{ZeladoriaUrbana.API_HostAddress}}/api/chamados/1/status
+Content-Type: application/json
+
+{
+  "status": "Em andamento"
+}
