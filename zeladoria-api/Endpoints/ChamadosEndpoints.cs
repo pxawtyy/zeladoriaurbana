@@ -42,7 +42,8 @@ public static class ChamadosEndpoints
         {
             usuario = new Usuario {
                 Nome = request.Nome,
-                Telefone = request.Telefone
+                Telefone = request.Telefone,
+                CriadoEm = DateTime.UtcNow
             };
             db.Usuarios.Add(usuario);
             await db.SaveChangesAsync();
