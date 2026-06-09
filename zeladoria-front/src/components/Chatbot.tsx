@@ -58,7 +58,7 @@ export default function Chatbot() {
    * Processa o envio de mensagens de texto do usuário e avança as etapas da coleta de dados.
    * @param e Evento de submissão do formulário.
    */
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 

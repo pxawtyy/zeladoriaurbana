@@ -22,7 +22,7 @@ export default function LoginAdmin() {
    * redireciona de forma segura para a rota "/admin".
    * @param e Evento padrão de submissão do formulário React.
    */
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setErro("");
