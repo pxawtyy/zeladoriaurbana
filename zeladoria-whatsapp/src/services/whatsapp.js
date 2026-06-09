@@ -7,8 +7,22 @@ let sock;
 let pairingRequested = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
+
+/**
+ * Flag global exportada que indica o status em tempo real da conexão com o WhatsApp.
+ * Utilizada pela API para barrar requisições caso o bot esteja offline.
+ * @type {boolean}
+ */
 export let isWhatsAppConnected = false;
 
+/**
+ * Inicializa a sessão do WhatsApp usando a biblioteca Baileys.
+ * Lida com o ciclo de vida da conexão, incluindo a solicitação segura do código 
+ * de pareamento e a lógica de reconexão exponencial em caso de quedas.
+ * * @async
+ * @function connectToWhatsApp
+ * @returns {Promise<void>}
+ */
 export const connectToWhatsApp = async () => {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
     const { version } = await fetchLatestBaileysVersion();
@@ -76,6 +90,17 @@ export const connectToWhatsApp = async () => {
     });
 }
 
+/**
+ * Processa e envia uma mensagem de texto para o cidadão.
+ * Aplica limpeza de caracteres especiais e formata automaticamente 
+ * o número para o padrão internacional DDI exigido pelo WhatsApp.
+ * * @async
+ * @function sendWhatsAppMessage
+ * @param {string|number} numero - Número do telefone do destinatário.
+ * @param {string} mensagem - O texto formatado da notificação.
+ * @returns {Promise<string>} O número completo mapeado com o sufixo '@s.whatsapp.net'.
+ * @throws {Error} Lança uma exceção se a instância do socket não estiver ativa.
+ */
 export const sendWhatsAppMessage = async (numero, mensagem) => {
     if (!sock) throw new Error("WhatsApp não está conectado ao servidor.");
     

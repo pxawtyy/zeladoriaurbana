@@ -7,6 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/**
+ * Middleware de segurança para proteger a API do bot.
+ * Valida se a requisição contém o cabeçalho de autorização correto
+ * utilizando o token secreto definido nas variáveis de ambiente.
+ * * @param {import('express').Request} req - Objeto da requisição.
+ * @param {import('express').Response} res - Objeto da resposta.
+ * @param {import('express').NextFunction} next - Função callback para avançar no pipeline.
+ */
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
     const secretToken = process.env.API_SECRET_TOKEN;
@@ -18,6 +26,14 @@ const authMiddleware = (req, res, next) => {
     next();
 };
 
+/**
+ * Rota para envio de notificações via WhatsApp.
+ * Verifica o status da conexão do bot antes de tentar disparar a mensagem.
+ * * @name POST /send-message
+ * @function
+ * @param {string} req.body.numero - Número do destinatário (com ou sem formatação).
+ * @param {string} req.body.mensagem - Texto que será enviado ao cidadão.
+ */
 app.post('/send-message', authMiddleware, async (req, res) => {
     if (!isWhatsAppConnected) {
         return res.status(503).json({ 
