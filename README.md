@@ -2,6 +2,16 @@
 
 Um ecossistema completo para gestão de zeladoria urbana, conectando a população ao poder público através de inteligência artificial, automação e atualizações em tempo real.
 
+## 🎯 Acesse o sistema online
+
+Frontend (Next.js via Vercel): [https://zeladoria-front.vercel.app/](https://zeladoria-front.vercel.app/)
+API (C# em Docker via Render): [https://zeladoriaurbana-n444.onrender.com/](https://zeladoriaurbana-n444.onrender.com/)
+
+Para acessar o painel administrativo, utilize as seguintes credenciais:
+
+* **Email:** [admin@zeladoria.com](mailto:admin@zeladoria.com)
+* **Senha:** admin123
+
 ## 🚀 O Projeto
 
 O projeto resolve o problema da lentidão e da falta de transparência no reporte de problemas da infraestrutura da cidade (buracos, iluminação, lixo, etc.). O cidadão relata o problema de forma intuitiva via assistente virtual, uma IA classifica a urgência automaticamente, e a gestão pública possui um painel em tempo real para monitorar e atualizar o status das ocorrências. A cada mudança de status, o cidadão é notificado ativamente via WhatsApp.
@@ -84,5 +94,4 @@ pnpm dev
 
 ## 👨‍💻 Autor
 
-**Michael Akira de Lima Kuwahara**
-Estudante de **Desenvolvimento de Software Multiplataforma** na **Fatec Luigi Papaiz**.
+**Michael Akira de Lima Kuwahara**, estudante de **Desenvolvimento de Software Multiplataforma** na **Fatec Luigi Papaiz**.
