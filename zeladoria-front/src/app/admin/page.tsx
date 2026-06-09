@@ -10,6 +10,11 @@ import ChamadosTable from "@/components/admin/ChamadosTable";
 import Pagination from "@/components/admin/Pagination";
 import ChamadoModal from "@/components/admin/ChamadoModal";
 
+/**
+ * Página do Painel Administrativo. Atua como um "Smart Component" (Contêiner Principal), 
+ * gerenciando o estado global da lista de chamados, a sessão do usuário logado e a subscrição 
+ * de eventos em tempo real do banco de dados.
+ */
 export default function AdminPanel() {
   const router = useRouter();
   const [adminNome, setAdminNome] = useState("");
@@ -24,6 +29,10 @@ export default function AdminPanel() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  /**
+   * Efeito responsável por validar a sessão de autenticação do administrador 
+   * e estabelecer a conexão WebSocket (Realtime) com o Supabase para atualizações instantâneas.
+   */
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -39,6 +48,7 @@ export default function AdminPanel() {
 
     checkUser();
 
+    // Inscrição via WebSocket para capturar novos chamados ou atualizações de status
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -56,6 +66,9 @@ export default function AdminPanel() {
     };
   }, [router]);
 
+  /**
+   * Requisita a lista atualizada de chamados do backend (API C#).
+   */
   const fetchChamados = async () => {
     setIsLoading(true);
     try {
@@ -68,6 +81,9 @@ export default function AdminPanel() {
     }
   };
 
+  /**
+   * Encerra a sessão do usuário autenticado.
+   */
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/admin/login");
@@ -75,6 +91,12 @@ export default function AdminPanel() {
 
   if (isAuthChecking) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Carregando...</div>;
 
+  /**
+   * Dispara a requisição PUT para o backend solicitando a alteração de status de um protocolo
+   * e atualiza o estado local de forma otimista.
+   * @param protocolo Identificador do chamado.
+   * @param novoStatus Novo status selecionado (Aberto, Em andamento, Resolvido).
+   */
   const atualizarStatus = async (protocolo: number, novoStatus: string) => {
     setIsUpdating(protocolo);
     try {
@@ -94,6 +116,7 @@ export default function AdminPanel() {
     }
   };
 
+  // Cálculo das propriedades de paginação
   const totalPages = Math.ceil(chamados.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;

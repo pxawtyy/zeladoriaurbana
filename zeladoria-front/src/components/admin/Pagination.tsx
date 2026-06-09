@@ -1,3 +1,24 @@
+/**
+ * Interface de propriedades para o controle de paginação.
+ */
+interface PaginationProps {
+    /** Página atual selecionada. */
+    currentPage: number;
+    /** Total geral de páginas disponíveis. */
+    totalPages: number;
+    /** Índice do primeiro item sendo exibido (para contagem). */
+    startIndex: number;
+    /** Índice do último item sendo exibido (para contagem). */
+    endIndex: number;
+    /** Quantidade total absoluta de itens na lista. */
+    totalItems: number;
+    /** Função callback disparada quando o usuário clica em "Anterior" ou "Próxima". */
+    onPageChange: (page: number) => void;
+}
+
+/**
+ * Componente de paginação para navegar entre blocos de resultados.
+ */
 export default function Pagination({
     currentPage,
     totalPages,
@@ -5,14 +26,7 @@ export default function Pagination({
     endIndex,
     totalItems,
     onPageChange
-}: {
-    currentPage: number;
-    totalPages: number;
-    startIndex: number;
-    endIndex: number;
-    totalItems: number;
-    onPageChange: (page: number) => void;
-}) {
+}: PaginationProps) {
     return (
         <div className="bg-slate-50 border-t border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="text-sm text-slate-500 text-center sm:text-left">

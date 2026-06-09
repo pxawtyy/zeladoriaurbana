@@ -4,6 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * Componente da página de Login Administrativo.
+ * Renderiza o formulário de acesso restrito e gerencia o fluxo de autenticação 
+ * utilizando o provedor de e-mail/senha do Supabase Auth.
+ */
 export default function LoginAdmin() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -11,6 +16,12 @@ export default function LoginAdmin() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  /**
+   * Intercepta a submissão do formulário, previne o recarregamento da tela e 
+   * realiza a tentativa de autenticação na nuvem. Em caso de sucesso, 
+   * redireciona de forma segura para a rota "/admin".
+   * @param e Evento padrão de submissão do formulário React.
+   */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

@@ -1,32 +1,33 @@
 import { Chamado } from "@/types";
+import { formatarData, getStatusColor } from "@/utils/formatters";
 
+/**
+ * Interface de propriedades para o componente ChamadosTable.
+ */
+interface ChamadosTableProps {
+    /** Lista de chamados a serem exibidos na tabela/cards. */
+    chamados: Chamado[];
+    /** Define se a tabela deve exibir o estado de skeleton loading. */
+    isLoading: boolean;
+    /** Protocolo do chamado que está sofrendo atualização de status no momento. */
+    isUpdating: number | null;
+    /** Função callback disparada ao alterar o status em um select. */
+    onAtualizarStatus: (protocolo: number, status: string) => void;
+    /** Função callback disparada para abrir o modal de detalhes. */
+    onSelecionarChamado: (chamado: Chamado) => void;
+}
+
+/**
+ * Dumb component responsável por renderizar a listagem de chamados.
+ * Possui layout responsivo alternando entre tabela (Desktop) e cards (Mobile).
+ */
 export default function ChamadosTable({
     chamados,
     isLoading,
     isUpdating,
     onAtualizarStatus,
     onSelecionarChamado
-}: {
-    chamados: Chamado[];
-    isLoading: boolean;
-    isUpdating: number | null;
-    onAtualizarStatus: (protocolo: number, status: string) => void;
-    onSelecionarChamado: (chamado: Chamado) => void;
-}) {
-    const formatarData = (dataIso: string) => {
-        return new Date(dataIso).toLocaleDateString("pt-BR", {
-            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Aberto": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            case "Em andamento": return "bg-blue-100 text-blue-800 border-blue-200";
-            case "Resolvido": return "bg-green-100 text-green-800 border-green-200";
-            default: return "bg-slate-100 text-slate-800 border-slate-200";
-        }
-    };
+}: ChamadosTableProps) {
 
     return (
         <>

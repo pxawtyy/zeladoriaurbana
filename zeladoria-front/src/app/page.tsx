@@ -2,6 +2,11 @@
 
 import Chatbot from "@/components/Chatbot";
 
+/**
+ * Componente da Página Inicial (Landing Page).
+ * Atua como a vitrine pública do projeto, explicando ao cidadão o fluxo 
+ * de relato de problemas urbanos e fornecendo o botão de acesso para o Chatbot flutuante.
+ */
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">

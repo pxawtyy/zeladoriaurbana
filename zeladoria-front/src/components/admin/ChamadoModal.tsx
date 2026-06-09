@@ -1,24 +1,24 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Chamado } from "@/types";
+import { formatarData, getStatusColor } from "@/utils/formatters";
 
-export default function ChamadoModal({ chamado, onClose }: { chamado: Chamado; onClose: () => void }) {
+/**
+ * Interface de propriedades para o modal de detalhes do chamado.
+ */
+interface ChamadoModalProps {
+    /** Objeto completo do chamado selecionado. */
+    chamado: Chamado;
+    /** Callback para fechar o modal. */
+    onClose: () => void;
+}
+
+/**
+ * Modal flutuante que exibe os detalhes completos, análises da IA, histórico do chat 
+ * e fotos de um chamado específico.
+ */
+export default function ChamadoModal({ chamado, onClose }: ChamadoModalProps) {
     const [imagemExpandida, setImagemExpandida] = useState<string | null>(null);
-
-    const formatarData = (dataIso: string) => {
-        return new Date(dataIso).toLocaleDateString("pt-BR", {
-            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Aberto": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            case "Em andamento": return "bg-blue-100 text-blue-800 border-blue-200";
-            case "Resolvido": return "bg-green-100 text-green-800 border-green-200";
-            default: return "bg-slate-100 text-slate-800 border-slate-200";
-        }
-    };
 
     return (
         <>

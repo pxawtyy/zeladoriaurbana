@@ -5,6 +5,11 @@ import { supabase } from "@/lib/supabase";
 import { api } from "@/services/api";
 import { Message } from "@/types";
 
+/**
+ * Componente interativo do assistente virtual (Chatbot).
+ * Gerencia o fluxo de conversa em etapas (máquina de estados), coleta os dados do cidadão,
+ * realiza o upload de imagens para o Supabase Storage e aciona a API para criar o protocolo.
+ */
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -26,18 +31,21 @@ export default function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Mantém o scroll sempre na última mensagem
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen, isTyping]);
 
+  // Escuta eventos globais para abrir o chatbot por botões externos
   useEffect(() => {
     const handleOpenChatbot = () => setIsOpen(true);
     window.addEventListener('openChatbot', handleOpenChatbot);
     return () => window.removeEventListener('openChatbot', handleOpenChatbot);
   }, []);
 
+  // Mantém o input focado automaticamente
   useEffect(() => {
     if (isOpen && !isTyping && step !== 4 && step !== 6) {
       setTimeout(() => {
@@ -46,6 +54,10 @@ export default function Chatbot() {
     }
   }, [isTyping, step, isOpen]);
 
+  /**
+   * Processa o envio de mensagens de texto do usuário e avança as etapas da coleta de dados.
+   * @param e Evento de submissão do formulário.
+   */
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -117,6 +129,10 @@ export default function Chatbot() {
     }, 800);
   };
 
+  /**
+   * Gerencia o upload do arquivo para o bucket do Supabase e finaliza o chamado via API.
+   * @param file Arquivo de imagem selecionado pelo usuário (ou null caso pule a etapa).
+   */
   const handleFileUpload = async (file: File | null) => {
     setIsTyping(true);
     setStep(5);
@@ -144,7 +160,6 @@ export default function Chatbot() {
     try {
       let imagemUrlFinal = null;
 
-      // Upload pro Supabase
       if (file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
@@ -238,9 +253,9 @@ export default function Chatbot() {
             </div>
           ))}
           {isTyping && (
-             <div className="bg-white border border-slate-200 text-slate-500 p-3 rounded-2xl rounded-tl-none self-start shadow-sm text-xs flex gap-1">
-               <span className="animate-bounce">.</span><span className="animate-bounce delay-100">.</span><span className="animate-bounce delay-200">.</span>
-             </div>
+            <div className="bg-white border border-slate-200 text-slate-500 p-3 rounded-2xl rounded-tl-none self-start shadow-sm text-xs flex gap-1">
+              <span className="animate-bounce">.</span><span className="animate-bounce delay-100">.</span><span className="animate-bounce delay-200">.</span>
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>
