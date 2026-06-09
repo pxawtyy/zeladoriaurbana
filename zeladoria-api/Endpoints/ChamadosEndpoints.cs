@@ -24,12 +24,17 @@ public static class ChamadosEndpoints
 
         if (usuario == null)
         {
-            usuario = new Usuario
-            {
+            usuario = new Usuario {
                 Nome = request.Nome,
-                Telefone = request.Telefone,
+                Telefone = request.Telefone
             };
             db.Usuarios.Add(usuario);
+            await db.SaveChangesAsync();
+        }
+        else
+        {
+            usuario.Nome = request.Nome; 
+            db.Usuarios.Update(usuario);
             await db.SaveChangesAsync();
         }
 
